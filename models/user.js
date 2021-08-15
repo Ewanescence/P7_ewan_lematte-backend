@@ -5,17 +5,17 @@ const sequelize = new Sequelize("test","root","root", {
 });
 
 const User = sequelize.define('User', {
-    user_login: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
     },
-    user_email: {
+    email: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
     },
-    user_password: {
+    password: {
       type: DataTypes.STRING,
       allowNull: false
     },
