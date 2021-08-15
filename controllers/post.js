@@ -14,3 +14,11 @@ exports.createPost = (async (req, res, next) => {
     } 
     catch (error) { res.status(400).json({ error: error }) };
 });
+
+exports.getAllPosts = (async (req, res, next) => {
+    try {
+        const posts = await Post.findAll({ })
+        res.status(201).json(posts)
+    } 
+    catch (error) { res.status(400).json({ error: error }) };
+});
