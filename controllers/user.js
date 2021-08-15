@@ -72,3 +72,11 @@ exports.authenticate = (async (req, res) => {
         })
     }
 })
+
+exports.logout = ((req, res) => {
+    res.cookie('jwt', '', {maxAge: 0})
+
+    res.send({
+        message: 'success'
+    })
+})
