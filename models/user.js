@@ -19,6 +19,21 @@ const User = sequelize.define('User', {
       type: DataTypes.STRING,
       allowNull: false
     },
+    imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "http://localhost:3000/images/profile_placeholder.png"
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "Bienvenue sur votre espace d'échanges en ligne Groupomania, vous pouvez éditer votre profil en utilisant le bouton sur votre droite."
+    },
+    role: {
+      type: DataTypes.STRING,
+      alloNull: true,
+      defaultValue: "user"
+    }
   }, {
     // Other model options go here
     modelName: 'user',

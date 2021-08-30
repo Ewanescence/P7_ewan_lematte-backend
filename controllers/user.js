@@ -5,7 +5,7 @@ const User = require('../models/user');
 
 exports.register = (async (req, res) => {
     try {
-        await User.sync()
+        await User.sync({ })
         const hashed = await bcrypt.hash(req.body.password, 10)
         const newUser = await User.create({ 
             name: req.body.name, 
@@ -23,13 +23,13 @@ exports.login = (async (req, res) => {
         
     if (!user) {
         return res.status(404).send({
-            message: 'Utilisateur introuvable'
+            message: 'Compte inexistant.'
         })
     }
 
     if (!await bcrypt.compare(req.body.password, user.password)) {
         return res.status(400).send({
-                message: 'Mot de passe incorrect'
+                message: 'Mot de passe invalide.'
         })
     }
 
@@ -41,7 +41,7 @@ exports.login = (async (req, res) => {
     })
 
     res.send({
-        message: 'success'
+        message: 'Connexion réussie, redirection...'
     })
 })
 
@@ -49,10 +49,8 @@ exports.authenticate = (async (req, res) => {
     try {
 
         const cookie = req.cookies['jwt']
-        console.log(cookie)
 
         const claims = jwt.verify(cookie, "secret")
-        console.log(claims)
 
         if (!claims) {
             return res.status(401).send({
@@ -79,4 +77,20 @@ exports.logout = ((req, res) => {
     res.send({
         message: 'success'
     })
+})
+
+exports.getAuthorInfo = (async (req, res) => {
+    
+    try {
+        const user = await User.findOne({ 
+            where: { id: req.body.user_id }, 
+            attributes: { exclude: ['password', 'email', 'description', 'role']}
+        })
+        res.status(200).json(user)
+    } catch (e) {
+        return res.status(401).send({
+            error: e
+        })
+    }
+
 })

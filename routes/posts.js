@@ -4,6 +4,7 @@ const router = express.Router();
 
 const postCtrl = require('../controllers/post');
 
-router.get('/', postCtrl.getAllPosts);
+router.post('/publish', postCtrl.createPost);
+router.get('/posts', postCtrl.getAllPosts);
 
 module.exports = router;

@@ -7,10 +7,6 @@ const sequelize = new Sequelize("test","root","root", {
 });
 
 const Post = sequelize.define('Post', {
-    post_title: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
     post_content:  {
       type: DataTypes.STRING,
       allowNull: false
