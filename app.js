@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { Sequelize } = require('sequelize');
+const path = require('path');
 
 const sequelize = new Sequelize("test","root","root", {
     dialect: "mysql",
@@ -18,8 +19,8 @@ try {
 const userRoutes = require('./routes/users');
 const postRoutes = require('./routes/posts');
 
-
 const app = express();
+
 
 app.use(cookieParser())
 

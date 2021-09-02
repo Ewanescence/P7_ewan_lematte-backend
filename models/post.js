@@ -11,6 +11,10 @@ const Post = sequelize.define('Post', {
       type: DataTypes.STRING,
       allowNull: false
     },
+    post_media: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     user_id: {
       type: DataTypes.INTEGER,
       references: {
