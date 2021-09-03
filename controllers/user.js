@@ -84,7 +84,7 @@ exports.getAuthorInfo = (async (req, res) => {
     try {
         const user = await User.findOne({ 
             where: { id: req.body.user_id }, 
-            attributes: { exclude: ['password', 'email', 'description', 'role']}
+            attributes: { exclude: ['password', 'email', 'description', 'role', 'createdAt', 'updatedAt']}
         })
         res.status(200).json(user)
     } catch (e) {
