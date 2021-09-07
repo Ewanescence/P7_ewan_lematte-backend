@@ -5,7 +5,7 @@ const User = require('../models/user');
 
 exports.register = (async (req, res) => {
     try {
-        await User.sync({ })
+        await User.sync({  })
         const hashed = await bcrypt.hash(req.body.password, 10)
         const newUser = await User.create({ 
             name: req.body.name, 
@@ -80,11 +80,10 @@ exports.logout = ((req, res) => {
 })
 
 exports.getAuthorInfo = (async (req, res) => {
-    
     try {
         const user = await User.findOne({ 
             where: { id: req.body.user_id }, 
-            attributes: { exclude: ['password', 'email', 'description', 'role', 'createdAt', 'updatedAt']}
+            attributes: { exclude: ['id', 'password', 'email', 'description', 'role', 'createdAt', 'updatedAt']}
         })
         res.status(200).json(user)
     } catch (e) {
@@ -92,5 +91,91 @@ exports.getAuthorInfo = (async (req, res) => {
             error: e
         })
     }
-
 })
+
+exports.getProfile = (async (req, res, next) => {
+    try {
+        const user = await User.findOne({ 
+            where: { name: req.query.username }
+        })
+        
+        res.send(user)
+    } 
+    catch (error) { 
+        res.status(400).json({ 
+            error: error
+        }) 
+    };
+})
+
+exports.changeProfilePicture = (async (req, res, next) => {
+    try {
+        const user = await User.findOne({ 
+            where: { name: req.query.username }
+        })
+        
+        user.imageUrl = req.file
+            ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+            : null
+            
+        await user.save()
+        
+        res.status(201).json({
+            message: 'Nouveau photo de profil !',
+        })
+    } 
+    catch (error) { 
+        res.status(400).json({ 
+            error: error
+        }) 
+    };
+});
+
+exports.changeProfileBanner = (async (req, res, next) => {
+    try {
+        
+        const user = await User.findOne({ 
+            where: { name: req.query.username }
+        })
+        
+        user.bannerUrl = req.file
+            ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+            : null
+            
+        await user.save()
+        
+        res.status(201).json({
+            message: 'Nouvelle bannière',
+        })
+    } 
+    catch (error) { 
+        res.status(400).json({ 
+            error: error
+        }) 
+    };
+});
+
+exports.updateProfile = (async (req, res, next) => {
+    try {
+        
+        console.log(req.body)
+
+        const user = await User.findOne({ 
+            where: { id: req.body.user_id }
+        })
+
+        user.description = req.body.description
+            
+        await user.save()
+        
+        res.status(201).json({
+            message: 'Description mise à jour.'
+        })
+    } 
+    catch (error) { 
+        res.status(400).json({ 
+            error: error,
+            message: 'Impossible de mettre à jour la description.'
+        }) 
+    };
+});

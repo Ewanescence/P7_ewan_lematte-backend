@@ -28,6 +28,11 @@ const User = sequelize.define('User', {
       allowNull: true,
       defaultValue: "http://localhost:3000/images/profile_placeholder.png"
     },
+    bannerUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: ""
+    },
     description: {
       type: DataTypes.STRING,
       allowNull: true,

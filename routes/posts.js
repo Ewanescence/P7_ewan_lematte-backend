@@ -7,5 +7,8 @@ const postCtrl = require('../controllers/post');
 
 router.post('/publish', multer, postCtrl.createPost);
 router.get('/posts', postCtrl.getAllPosts);
+router.get('/postsFrom', postCtrl.getAllPostsFrom);
+router.get('/post', postCtrl.getOnePost);
+
 
 module.exports = router;

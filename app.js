@@ -24,6 +24,7 @@ try {
 
 const userRoutes = require('./routes/users');
 const postRoutes = require('./routes/posts');
+const commentRoutes = require('./routes/comments');
 
 const app = express();
 
@@ -43,16 +44,12 @@ app.use((req, res, next) => {
     next();
   });
 
-/*app.use(cors({
-    credentials: true,
-    origin: [process.env.APP_BACKEND, process.env.APP_FRONTEND]
-}))*/
-
 app.use(express.json());
 
 app.use("/images", express.static("images"));
 
 app.use('/api', userRoutes);
 app.use('/api', postRoutes);
+app.use('/api', commentRoutes);
 
 module.exports = app;
