@@ -71,26 +71,32 @@ exports.authenticate = (async (req, res) => {
     }
 })
 
+exports.verifyOwner = (async (req, res) => {
+    try {
+
+        const cookie = req.cookies['jwt']
+
+        const claims = jwt.verify(cookie, "secret")
+
+        const user = await User.findOne({ where: { id: claims.id }})
+
+        if (user.id != req.query.id && user.role != 'moderator') {
+            return res.status(401).send()
+        } 
+        
+        return res.status(200).send()
+
+    } catch (e) {
+        return res.status(401).send()
+    }
+})
+
 exports.logout = ((req, res) => {
     res.cookie('jwt', '', {maxAge: 0})
 
     res.send({
         message: 'success'
     })
-})
-
-exports.getAuthorInfo = (async (req, res) => {
-    try {
-        const user = await User.findOne({ 
-            where: { id: req.body.user_id }, 
-            attributes: { exclude: ['id', 'password', 'email', 'description', 'role', 'createdAt', 'updatedAt']}
-        })
-        res.status(200).json(user)
-    } catch (e) {
-        return res.status(401).send({
-            error: e
-        })
-    }
 })
 
 exports.getProfile = (async (req, res, next) => {
@@ -158,8 +164,6 @@ exports.changeProfileBanner = (async (req, res, next) => {
 exports.updateProfile = (async (req, res, next) => {
     try {
         
-        console.log(req.body)
-
         const user = await User.findOne({ 
             where: { id: req.body.user_id }
         })
@@ -176,6 +180,29 @@ exports.updateProfile = (async (req, res, next) => {
         res.status(400).json({ 
             error: error,
             message: 'Impossible de mettre à jour la description.'
+        }) 
+    };
+});
+
+exports.deleteProfile = (async (req, res, next) => {
+    try { 
+
+        const user = await User.findOne({ 
+            where: { id: req.query.id }
+        })
+
+        user.destroy()
+        
+        res.cookie('jwt', '', {maxAge: 0})
+
+        res.status(201).json({
+            message: 'Profil supprimé.'
+        })
+    } 
+    catch (error) { 
+        res.status(400).json({ 
+            error: error,
+            message: 'Impossible de supprimer le profil.'
         }) 
     };
 });

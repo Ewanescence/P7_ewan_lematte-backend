@@ -1,6 +1,5 @@
 
 const Comment = require('../models/comment');
-const User = require('../models/user');
 
 exports.createComment = (async (req, res, next) => {
     try {
@@ -24,7 +23,7 @@ exports.createComment = (async (req, res, next) => {
     };
 });
 
-exports.getAllComments = (async (req, res, next) => {
+exports.getAllCommentsFrom = (async (req, res, next) => {
     try {
         const comments = await Comment.findAll({ 
             where: { post_id: req.query.id }, 
@@ -35,4 +34,61 @@ exports.getAllComments = (async (req, res, next) => {
         res.status(200).json(comments)
     } 
     catch (error) { res.status(400).json({ error: error }) };
+});
+
+exports.deleteAllCommentsFromUser = (async (req, res, next) => {
+    try {
+        const comments = await Comment.findAll({ 
+            where: { user_id: req.query.id },
+        })
+
+        comments.forEach(async (comment) => {
+            
+            await comment.destroy()
+
+        })
+
+        res.status(201).json({
+            message: 'Commentaires supprimés.'
+        })
+    } 
+    catch (error) { 
+        res.status(400).json({ 
+            error: error,
+            message: 'Impossible de supprimer les commentaires.'
+        }) 
+    };
+});
+
+exports.deleteAllCommentsFromPost = (async (req, res, next) => {
+    try {
+        const comments = await Comment.findAll({ 
+            where: { post_id: req.query.id }
+        })
+
+        comments.forEach( async (comment) => {
+            await comment.destroy()
+        })
+
+        res.status(200).json({
+            res: req.query.id
+        })
+    } 
+    catch (error) { res.status(400).json({ error: error }) }
+});
+
+exports.deleteComment = (async (req, res, next) => {
+    try {
+
+        const comment = await Comment.findOne({
+            where: { id: req.query.id }
+        })
+
+        await comment.destroy()
+
+        res.status(200).json({
+            res: req.query.id
+        })
+    } 
+    catch (error) { res.status(400).json({ error: error }) }
 });
