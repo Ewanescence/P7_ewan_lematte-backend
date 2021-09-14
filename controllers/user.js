@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt') // bcrypt : hash mots de passe
 const jwt = require('jsonwebtoken') //jwt : token d'authentification
+const fs = require('fs');
 
 const User = require('../models/user');
 
@@ -12,9 +13,9 @@ exports.register = (async (req, res) => {
             email: req.body.email, 
             password: hashed
         })
-        return res.status(200).json()
+        return res.status(200).json({  message: 'Utilisateur inscrit.' })
     } 
-    catch (error) { return res.status(400).json({ error: error }) };
+    catch (error) { return res.status(400).json({  message: 'Imposssible d\'inscrire l\'utilisateur.' })}
 })
 
 exports.login = (async (req, res) => {
@@ -23,7 +24,7 @@ exports.login = (async (req, res) => {
         
     if (!user) {
         return res.status(404).send({
-            message: 'Compte inexistant.'
+            message: 'Identifiants inexistants, vérifiez la saisie.'
         })
     }
 
@@ -45,28 +46,22 @@ exports.login = (async (req, res) => {
     })
 })
 
-exports.authenticate = (async (req, res) => {
+exports.getUserData = (async (req, res) => {
     try {
 
         const cookie = req.cookies['jwt']
 
         const claims = jwt.verify(cookie, "secret")
 
-        if (!claims) {
-            return res.status(401).send({
-                message: 'unauthenticated'
-            })
-        }
-
         const user = await User.findOne({ where: { id: claims.id }})
 
         const {password, ...data} = await user.toJSON()
 
         res.send(data)
+
     } catch (e) {
         return res.status(401).send({
-            message: 'unauthenticated',
-            error: e
+            message: 'Impossible de récupérer les donénes de l\'utilisateur.',
         })
     }
 })
@@ -94,9 +89,7 @@ exports.verifyOwner = (async (req, res) => {
 exports.logout = ((req, res) => {
     res.cookie('jwt', '', {maxAge: 0})
 
-    res.send({
-        message: 'success'
-    })
+    res.send({ message: 'Déconnexion réussie, redirection...' })
 })
 
 exports.getProfile = (async (req, res, next) => {
@@ -109,30 +102,35 @@ exports.getProfile = (async (req, res, next) => {
     } 
     catch (error) { 
         res.status(400).json({ 
-            error: error
+            message: 'Impossible de récupérer le profil de l\'utilisateur.'
         }) 
     };
 })
 
 exports.changeProfilePicture = (async (req, res, next) => {
     try {
+        
         const user = await User.findOne({ 
             where: { name: req.query.username }
         })
+
+        user.imageUrl 
+            ? fs.unlink(user.imageUrl, () => {})
+            : null
         
         user.imageUrl = req.file
-            ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+            ? `images/${req.file.filename}`
             : null
             
         await user.save()
         
         res.status(201).json({
-            message: 'Nouveau photo de profil !',
+            message: 'Photo de profil modifiée.',
         })
     } 
     catch (error) { 
         res.status(400).json({ 
-            error: error
+            message: 'Impossible de modifier la photo de profil.'
         }) 
     };
 });
@@ -143,20 +141,24 @@ exports.changeProfileBanner = (async (req, res, next) => {
         const user = await User.findOne({ 
             where: { name: req.query.username }
         })
+
+        user.bannerUrl 
+            ? fs.unlink(user.bannerUrl, () => {})
+            : null
         
         user.bannerUrl = req.file
-            ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+            ? `images/${req.file.filename}`
             : null
             
         await user.save()
         
         res.status(201).json({
-            message: 'Nouvelle bannière',
+            message: 'Bannière modifiée.',
         })
     } 
     catch (error) { 
         res.status(400).json({ 
-            error: error
+            message: 'Impossible de modifier la photo de profil.'
         }) 
     };
 });
@@ -187,17 +189,43 @@ exports.updateProfile = (async (req, res, next) => {
 exports.deleteProfile = (async (req, res, next) => {
     try { 
 
-        const user = await User.findOne({ 
-            where: { id: req.query.id }
-        })
+        const cookie = req.cookies['jwt']
 
-        user.destroy()
+        const claims = jwt.verify(cookie, "secret")
+
+        const userRequesting = await User.findOne({ where: { id: claims.id } })
         
-        res.cookie('jwt', '', {maxAge: 0})
+        const userToDelete = await User.findOne({ where: { id: req.query.id } })
 
-        res.status(201).json({
-            message: 'Profil supprimé.'
-        })
+        if(userToDelete.imageUrl) {
+            fs.unlink(userToDelete.imageUrl, () => {})
+        }
+
+        if(userToDelete.bannerUrl) {
+            fs.unlink(userToDelete.bannerUrl, () => {})
+        }
+        
+        switch (userRequesting.role) {
+            case 'moderator':
+                userToDelete.destroy()
+                    .then(() => res.status(201).json({ 
+                        message: 'Utilisateur supprimé.',
+                        role: 'moderator'
+                    }))
+                    .catch(error => res.status(400).json({ error }));
+                break
+            case 'user':
+                userToDelete.destroy()
+                    .then(() => {
+                        res.cookie('jwt', '', {maxAge: 0})
+                        res.status(201).json({ 
+                            message: 'Utilisateur supprimé.',
+                            role: 'user'
+                        })
+                    })
+                    .catch(error => res.status(400).json({ error }));
+                break
+        }      
     } 
     catch (error) { 
         res.status(400).json({ 

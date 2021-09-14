@@ -26,7 +26,7 @@ const User = sequelize.define('User', {
     imageUrl: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "http://localhost:3000/images/profile_placeholder.png"
+      defaultValue: "images/profile_placeholder.png"
     },
     bannerUrl: {
       type: DataTypes.STRING,

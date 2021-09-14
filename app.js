@@ -28,7 +28,6 @@ const commentRoutes = require('./routes/comments');
 
 const app = express();
 
-
 app.use(cookieParser())
 
 // Helmet : pour sécuriser les entêtes des requêtes

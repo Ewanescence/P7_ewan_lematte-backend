@@ -1,7 +1,8 @@
 
+const fs = require('fs');
+
 const Post = require('../models/post')
 const User = require('../models/user')
-const Comment = require('../models/comment')
 
 exports.createPost = (async (req, res, next) => {
     try {
@@ -9,17 +10,17 @@ exports.createPost = (async (req, res, next) => {
         await Post.create({ 
             post_content: req.body.content,
             post_media: req.body.content && req.file
-                ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+                ? `images/${req.file.filename}`
                 : null,
             user_id: req.body.user_id
         })
         res.status(201).json({
-            message: 'Nouveau post enregistré !',
+            message: 'Publication partagée.',
         })
     } 
     catch (error) { 
         res.status(400).json({ 
-            error: error
+            message: 'Impossible de partager la publication.',
         }) 
     };
 });
@@ -35,7 +36,7 @@ exports.getAllPosts = (async (req, res, next) => {
 
         res.status(200).json(posts)
     } 
-    catch (error) { res.status(400).json({ error: error }) };
+    catch (error) { res.status(400).json({ message: 'Impossible de récupérer les publications.', }) };
 });
 
 exports.getAuthorInfo = (async (req, res) => {
@@ -45,9 +46,9 @@ exports.getAuthorInfo = (async (req, res) => {
             attributes: { exclude: ['id', 'password', 'email', 'description', 'role', 'createdAt', 'updatedAt']}
         })
         res.status(200).json(user)
-    } catch (e) {
+    } catch (error) {
         return res.status(401).send({
-            error: e
+            message: 'Impossible de récupérer les informations de l\'auteur.',
         })
     }
 })
@@ -63,7 +64,7 @@ exports.getAllPostsFrom = (async (req, res, next) => {
         })
         res.status(200).json(posts)
     } 
-    catch (error) { res.status(400).json({ error: error }) };
+    catch (error) { res.status(400).json({ message: 'Impossible de récupérer les publications de l\'utilisateur.', }) };
 });
 
 exports.getOnePost = (async (req, res, next) => {
@@ -76,23 +77,22 @@ exports.getOnePost = (async (req, res, next) => {
         const data = {user, post}
         res.status(200).json(data)
     } 
-    catch (error) { res.status(400).json({ error: error }) }
+    catch (error) { res.status(400).json({ message: 'Impossible de récupérer la publication.' }) }
 });
 
 exports.deletePost = (async (req, res, next) => {
     try {
 
-        const post = await Post.findOne({
-            where: { id: req.query.id }
-        })
+        const post = await Post.findOne({ where: { id: req.query.id } })
 
-        await post.destroy()
-
-        res.status(200).json({
-            res: req.query.id
-        })
+        post.post_media 
+            ? fs.unlink(post.post_media, () => {
+                
+            })
+            : post.destroy()
+                .then(() => res.status(201).json({ message: 'Publication supprimée.' }))
     } 
-    catch (error) { res.status(400).json({ error: error }) }
+    catch (error) { res.status(400).json({ message: 'Imposssible de supprimer la publication.' }) }
 });
 
 exports.deleteAllPostsFromUser = (async (req, res, next) => {
@@ -102,9 +102,13 @@ exports.deleteAllPostsFromUser = (async (req, res, next) => {
             where: { user_id: req.query.id },
         })
 
-        posts.forEach(async (post) => {
-            
-            await post.destroy()
+        posts.forEach((post) => {
+
+            post.post_media 
+            ? fs.unlink(post.post_media, () => {
+                post.destroy()
+            })
+            : post.destroy()
 
         })
 
@@ -114,7 +118,6 @@ exports.deleteAllPostsFromUser = (async (req, res, next) => {
     } 
     catch (error) { 
         res.status(400).json({ 
-            error: error,
             message: 'Impossible de supprimer les publications.'
         }) 
     };

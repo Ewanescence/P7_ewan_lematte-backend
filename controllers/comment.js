@@ -1,5 +1,7 @@
 
-const Comment = require('../models/comment');
+const fs = require('fs')
+
+const Comment = require('../models/comment')
 
 exports.createComment = (async (req, res, next) => {
     try {
@@ -7,18 +9,18 @@ exports.createComment = (async (req, res, next) => {
         await Comment.create({ 
             comment_content: req.body.content,
             comment_media: req.body.content && req.file
-                ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+                ? `images/${req.file.filename}`
                 : null,
             user_id: req.body.user_id,
             post_id: req.body.post_id
         })
         res.status(201).json({
-            message: 'Nouveau commentaire enregistré !',
+            message: 'Commentaire publié.'
         })
     } 
     catch (error) { 
         res.status(400).json({ 
-            error: error
+            message: 'Impossible de publier le commentaire.'
         }) 
     };
 });
@@ -33,7 +35,9 @@ exports.getAllCommentsFrom = (async (req, res, next) => {
         })
         res.status(200).json(comments)
     } 
-    catch (error) { res.status(400).json({ error: error }) };
+    catch (error) { res.status(400).json({ 
+        message: 'Impossible de récupérer les commentaires.'
+    }) };
 });
 
 exports.deleteAllCommentsFromUser = (async (req, res, next) => {
@@ -43,9 +47,11 @@ exports.deleteAllCommentsFromUser = (async (req, res, next) => {
         })
 
         comments.forEach(async (comment) => {
-            
-            await comment.destroy()
-
+            comment.comment_media 
+            ? fs.unlink(comment.comment_media, () => {
+                comment.destroy()
+            })
+            : comment.destroy()
         })
 
         res.status(201).json({
@@ -54,7 +60,6 @@ exports.deleteAllCommentsFromUser = (async (req, res, next) => {
     } 
     catch (error) { 
         res.status(400).json({ 
-            error: error,
             message: 'Impossible de supprimer les commentaires.'
         }) 
     };
@@ -67,14 +72,18 @@ exports.deleteAllCommentsFromPost = (async (req, res, next) => {
         })
 
         comments.forEach( async (comment) => {
-            await comment.destroy()
+            comment.comment_media 
+            ? fs.unlink(comment.comment_media, () => {
+                comment.destroy()
+            })
+            : comment.destroy()
         })
 
         res.status(200).json({
-            res: req.query.id
+            message: 'Commentaires supprimés.'
         })
     } 
-    catch (error) { res.status(400).json({ error: error }) }
+    catch (error) { res.status(400).json({ message: 'Impossible de supprimer les commentaires.' }) }
 });
 
 exports.deleteComment = (async (req, res, next) => {
@@ -84,11 +93,15 @@ exports.deleteComment = (async (req, res, next) => {
             where: { id: req.query.id }
         })
 
-        await comment.destroy()
+        comment.comment_media 
+            ? fs.unlink(comment.comment_media, () => {
+                comment.destroy()
+            })
+            : comment.destroy()
 
         res.status(200).json({
-            res: req.query.id
+            message: 'Commentaire supprimé.'
         })
     } 
-    catch (error) { res.status(400).json({ error: error }) }
+    catch (error) { res.status(400).json({ message: 'Impossible de supprimer le commentaire.' }) }
 });
