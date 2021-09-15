@@ -7,7 +7,8 @@ const auth = require('../middleware/auth');
 const commentCtrl = require('../controllers/comment');
 
 router.post('/comment/publish', auth, multer, commentCtrl.createComment);
-router.get('/comments/post', auth, commentCtrl.getAllCommentsFrom);
+router.get('/comments/post', auth, commentCtrl.getAllCommentsFromPost);
+router.get('/comments/user', auth, commentCtrl.getAllCommentsFromUser);
 
 router.delete('/comments/delete/user', auth, commentCtrl.deleteAllCommentsFromUser);
 router.delete('/comments/delete/post', auth, commentCtrl.deleteAllCommentsFromPost);

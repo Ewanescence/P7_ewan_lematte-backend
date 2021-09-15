@@ -25,7 +25,7 @@ exports.createComment = (async (req, res, next) => {
     };
 });
 
-exports.getAllCommentsFrom = (async (req, res, next) => {
+exports.getAllCommentsFromPost = (async (req, res, next) => {
     try {
         const comments = await Comment.findAll({ 
             where: { post_id: req.query.id }, 
@@ -38,6 +38,19 @@ exports.getAllCommentsFrom = (async (req, res, next) => {
     catch (error) { res.status(400).json({ 
         message: 'Impossible de récupérer les commentaires.'
     }) };
+});
+
+exports.getAllCommentsFromUser = (async (req, res, next) => {
+    try {
+        const comments = await Comment.findAll({ 
+            where: { user_id: req.query.id },
+            order: [
+                ['id', 'DESC']
+            ]
+        })
+        res.status(200).json(comments)
+    } 
+    catch (error) { res.status(400).json({ message: 'Impossible de récupérer les commentaires de l\'utilisateur.', }) };
 });
 
 exports.deleteAllCommentsFromUser = (async (req, res, next) => {
