@@ -121,7 +121,8 @@ exports.logout = ((req, res) => {
 exports.getProfile = (async (req, res, next) => {
     try {
         const user = await User.findOne({ 
-            where: { name: req.query.username }
+            where: { name: req.query.username },
+            attributes: { exclude: ['password', 'email', 'role', 'createdAt', 'updatedAt']}
         }) // Récupération : profil utilisateur selon nom utilisateur
         
         res.send(user)
