@@ -1,13 +1,13 @@
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken'); // Module : Token Web
 
-const User = require('../models/user');
+const User = require('../models/user'); // Modèle : utilisateur
 
 module.exports = (async (req, res, next) => {
     try {
 
         const cookie = req.cookies['jwt']
 
-        const claims = jwt.verify(cookie, "secret")
+        const claims = jwt.verify(cookie, "secret") // Vérification : Cookie
 
         if (!claims) {
             return res.status(401).send({
@@ -15,7 +15,7 @@ module.exports = (async (req, res, next) => {
             })
         }
 
-        await User.findOne({ where: { id: claims.id }})
+        await User.findOne({ where: { id: claims.id }}) // Récupération : Utilisateur selon cookie
 
         next()
 

@@ -1,12 +1,18 @@
 
-const fs = require('fs')
+const fs = require('fs') // Module : gestion des fichiers
 
-const Comment = require('../models/comment')
+const Comment = require('../models/comment') // Modèle : commentaire
 
 exports.createComment = (async (req, res, next) => {
     try {
-        await Comment.sync({ })
-        await Comment.create({ 
+        
+        if (req.body.content == '') { // Vérification : Donnée entrante null
+            res.status(400).json({ 
+                message: 'Un commentaire ne peut pas être vide.'
+            }) 
+        }
+
+        await Comment.create({  // Création : commentaire
             comment_content: req.body.content,
             comment_media: req.body.content && req.file
                 ? `images/${req.file.filename}`
@@ -27,7 +33,7 @@ exports.createComment = (async (req, res, next) => {
 
 exports.getAllCommentsFromPost = (async (req, res, next) => {
     try {
-        const comments = await Comment.findAll({ 
+        const comments = await Comment.findAll({  // Récupération : tous les commentaires d'une publication
             where: { post_id: req.query.id }, 
             order: [
                 ['id', 'DESC']
@@ -40,9 +46,9 @@ exports.getAllCommentsFromPost = (async (req, res, next) => {
     }) };
 });
 
-exports.getAllCommentsFromUser = (async (req, res, next) => {
+exports.getAllCommentsFromUser = (async (req, res, next) => { 
     try {
-        const comments = await Comment.findAll({ 
+        const comments = await Comment.findAll({ // Récupération : Tous les commentaires d'un utilisateur
             where: { user_id: req.query.id },
             order: [
                 ['id', 'DESC']
@@ -55,13 +61,13 @@ exports.getAllCommentsFromUser = (async (req, res, next) => {
 
 exports.deleteAllCommentsFromUser = (async (req, res, next) => {
     try {
-        const comments = await Comment.findAll({ 
+        const comments = await Comment.findAll({ // Récupération : Tous les commentaires d'un utilisateur
             where: { user_id: req.query.id },
         })
 
         comments.forEach(async (comment) => {
             comment.comment_media 
-            ? fs.unlink(comment.comment_media, () => {
+            ? fs.unlink(comment.comment_media, () => { // Suppression : image si présente, puis commentaire
                 comment.destroy()
             })
             : comment.destroy()
@@ -78,15 +84,15 @@ exports.deleteAllCommentsFromUser = (async (req, res, next) => {
     };
 });
 
-exports.deleteAllCommentsFromPost = (async (req, res, next) => {
+exports.deleteAllCommentsFromPost = (async (req, res, next) => { 
     try {
-        const comments = await Comment.findAll({ 
+        const comments = await Comment.findAll({ // Récupération : tous les commentaires d'une publication
             where: { post_id: req.query.id }
         })
 
         comments.forEach( async (comment) => {
             comment.comment_media 
-            ? fs.unlink(comment.comment_media, () => {
+            ? fs.unlink(comment.comment_media, () => { // Suppression : image si présente, puis commentaire
                 comment.destroy()
             })
             : comment.destroy()
@@ -102,12 +108,12 @@ exports.deleteAllCommentsFromPost = (async (req, res, next) => {
 exports.deleteComment = (async (req, res, next) => {
     try {
 
-        const comment = await Comment.findOne({
+        const comment = await Comment.findOne({ // Récupération : commentaire selon identifiant
             where: { id: req.query.id }
         })
 
         comment.comment_media 
-            ? fs.unlink(comment.comment_media, () => {
+            ? fs.unlink(comment.comment_media, () => { // Suppression : image si présente, puis commentaire
                 comment.destroy()
             })
             : comment.destroy()
