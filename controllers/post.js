@@ -91,7 +91,8 @@ exports.deletePost = (async (req, res, next) => {
 
         post.post_media 
             ? fs.unlink(post.post_media, () => { // Suppression : image si présente
-                
+                post.destroy() // Suppression : publication
+                .then(() => res.status(201).json({ message: 'Publication supprimée.' }))         
             })
             : post.destroy() // Suppression : publication
                 .then(() => res.status(201).json({ message: 'Publication supprimée.' }))

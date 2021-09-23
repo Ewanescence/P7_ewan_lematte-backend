@@ -78,7 +78,7 @@ exports.getUserData = (async (req, res) => {
 
         const user = await User.findOne({ 
             where: { id: claims.id },
-            attributes: { exclude: ['id', 'password', 'email', 'description', 'role', 'createdAt', 'updatedAt']}
+            attributes: { exclude: ['password', 'email', 'description', 'role', 'createdAt', 'updatedAt']}
         }) // Récupération : données utilisateur via cookie
 
         const {password, ...data} = await user.toJSON()
@@ -141,8 +141,8 @@ exports.changeProfilePicture = (async (req, res, next) => {
             where: { name: req.query.username }
         }) // Récupération : Profil selon nom d'utilisateur
 
-        user.imageUrl // Vérification : présence image (si présente, suppression)
-            ? fs.unlink(user.imageUrl, () => {}) 
+        user.imageUrl && user.imageUrl != "images/profile_placeholder.png"// Vérification : présence image (si présente, suppression)
+            ? fs.unlink(user.imageUrl, () => {})
             : null
         
         user.imageUrl = req.file // Vérification : présence image en requête
